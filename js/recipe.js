@@ -29,11 +29,16 @@
       ? `<img class="photo" src="/photos/${encodeURIComponent(recipe.photo)}" alt="${escapeHtml(recipe.name)}" />`
       : "";
 
+    // These three fields support Markdown. renderMarkdown escapes first, then
+    // adds back only a fixed set of safe tags, so this is injection-safe even
+    // though anyone can submit a recipe.
+    const md = window.renderMarkdown;
+
     const notesHtml = recipe.notes
       ? `
         <div class="recipe-section notes">
           <h2>Notes</h2>
-          <p class="body-text">${escapeHtml(recipe.notes)}</p>
+          <div class="rich-text">${md(recipe.notes)}</div>
         </div>`
       : "";
 
@@ -45,20 +50,15 @@
 
         <div class="recipe-section">
           <h2>Ingredients</h2>
-          <p class="body-text">${escapeHtml(recipe.ingredients)}</p>
+          <div class="rich-text">${md(recipe.ingredients)}</div>
         </div>
 
         <div class="recipe-section">
           <h2>Instructions</h2>
-          <p class="body-text">${escapeHtml(recipe.instructions)}</p>
+          <div class="rich-text">${md(recipe.instructions)}</div>
         </div>
 
         ${notesHtml}
-
-        <p class="locked-note">
-          This card is filed in the repo. To change or remove it, edit or delete
-          its file in <code>recipes/</code> on the backend.
-        </p>
       </article>
     `;
   }

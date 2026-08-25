@@ -584,3 +584,158 @@ textarea:focus-visible {
     justify-content: center;
   }
 }
+
+/* ---------- rendered markdown (recipe fields) ---------- */
+
+.rich-text {
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.rich-text > *:first-child { margin-top: 0; }
+.rich-text > *:last-child { margin-bottom: 0; }
+
+.rich-text p {
+  margin: 0 0 0.9em;
+}
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 1.1em 0 0.4em;
+  /* override the mono uppercase section-heading styling for in-body headings */
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+  border: 0;
+  padding: 0;
+}
+
+.rich-text h1 { font-size: 1.5rem; }
+.rich-text h2 { font-size: 1.28rem; }
+.rich-text h3 { font-size: 1.12rem; }
+
+.rich-text ul,
+.rich-text ol {
+  margin: 0 0 0.9em;
+  padding-left: 1.4em;
+}
+
+.rich-text li {
+  margin: 0.2em 0;
+}
+
+.rich-text a {
+  color: var(--pine-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rich-text a:hover {
+  color: var(--brick-dark);
+}
+
+.recipe-section.notes .rich-text {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ---------- markdown toolbar (add form) ---------- */
+
+.md-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.md-btn {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1;
+  padding: 6px 10px;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.md-btn:hover {
+  background: var(--linen-dark);
+  border-color: var(--pine);
+}
+
+.md-btn strong,
+.md-btn em {
+  font-size: 0.95rem;
+}
+
+/* ---------- live preview panel ---------- */
+
+.preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.preview-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  background: var(--card);
+  color: var(--pine-dark);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.preview-toggle:hover {
+  border-color: var(--pine);
+}
+
+.recipe-preview {
+  background: #fffdf8;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 22px clamp(16px, 4vw, 28px);
+}
+
+.recipe-preview h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0 0 18px;
+  line-height: 1.1;
+}
+
+.recipe-preview .recipe-section {
+  margin-bottom: 20px;
+}
+
+.recipe-preview .recipe-section:last-child {
+  margin-bottom: 0;
+}
+
+.recipe-preview .recipe-section h2 {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--pine-dark);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 6px;
+  margin: 0 0 12px;
+}
+
+.recipe-preview .preview-empty {
+  color: var(--ink-soft);
+  opacity: 0.6;
+  margin: 0;
+}
