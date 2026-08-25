@@ -1,0 +1,16 @@
+{
+  "name": "family-recipes",
+  "version": "1.0.1",
+  "description": "Self-hosted family recipe site - add and search recipes, no login required.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

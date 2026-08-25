@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add a Recipe — Family Recipes</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <span class="drawer-label">New Card</span>
+    <h1 class="site-title"><a href="/">Family Recipes</a></h1>
+    <p class="site-tagline">Fill out the card below. Once it's filed, it's permanent here — double-check before submitting.</p>
+    <nav class="top-nav">
+      <a class="btn" href="/">&larr; Back to the box</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="form-sheet">
+      <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
+
+      <form id="recipe-form" novalidate>
+        <div class="field">
+          <label for="name">Recipe name</label>
+          <input type="text" id="name" name="name" required maxlength="120" placeholder="e.g. Grandma's Sunday Sauce" />
+        </div>
+
+        <div class="field">
+          <label for="ingredients">Ingredients</label>
+          <textarea id="ingredients" name="ingredients" required placeholder="One ingredient per line works best, e.g.&#10;2 cups flour&#10;1 tsp salt&#10;3 eggs"></textarea>
+          <span class="hint">Tip: put one ingredient per line so it's easy to scan.</span>
+        </div>
+
+        <div class="field">
+          <label for="instructions">Instructions</label>
+          <textarea id="instructions" name="instructions" required placeholder="Step-by-step directions…"></textarea>
+        </div>
+
+        <div class="field notes">
+          <label for="notes">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <textarea id="notes" name="notes" placeholder="Substitutions, tips, where this recipe came from…"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="photo">Photo <span class="hint" style="display:inline">(optional)</span></label>
+          <div class="photo-drop">
+            <span>JPEG, PNG, WEBP, or GIF — up to 8MB</span>
+            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp,image/gif" />
+            <div class="photo-preview" id="photo-preview">
+              <img id="photo-preview-img" alt="Selected photo preview" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a class="btn" href="/">Cancel</a>
+          <button type="submit" class="btn btn-primary" id="submit-btn">File this recipe</button>
+        </div>
+
+        <p class="form-status" id="form-status" role="status"></p>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="/js/add.js"></script>
+  <script src="/js/footer.js"></script>
+</body>
+</html>
