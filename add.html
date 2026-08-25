@@ -28,48 +28,28 @@
         </div>
 
         <div class="field">
-          <label for="ingredients">Ingredients</label>
-          <div class="md-toolbar" data-target="ingredients" role="toolbar" aria-label="Formatting for ingredients">
-            <button type="button" class="md-btn" data-md="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-            <button type="button" class="md-btn" data-md="italic" title="Italic (Ctrl+I)"><em>I</em></button>
-            <button type="button" class="md-btn" data-md="h2" title="Heading">H</button>
-            <button type="button" class="md-btn" data-md="ul" title="Bullet list">&bull; List</button>
-            <button type="button" class="md-btn" data-md="ol" title="Numbered list">1. List</button>
-          </div>
-          <textarea id="ingredients" name="ingredients" required placeholder="One ingredient per line works best, e.g.&#10;2 cups flour&#10;1 tsp salt&#10;3 eggs"></textarea>
-          <span class="hint">Tip: put one ingredient per line so it's easy to scan. Formatting uses Markdown.</span>
+          <label for="ingredients-editor">Ingredients</label>
+          <div class="live-editor" id="ingredients-editor" contenteditable="true"
+               role="textbox" aria-multiline="true" aria-label="Ingredients"
+               data-placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></div>
+          <input type="hidden" id="ingredients" name="ingredients" />
+          <span class="hint">Type <code>**bold**</code>, <code>*italic*</code>, <code>## heading</code>, or <code>- list</code> — it styles as you type.</span>
         </div>
 
         <div class="field">
-          <label for="instructions">Instructions</label>
-          <div class="md-toolbar" data-target="instructions" role="toolbar" aria-label="Formatting for instructions">
-            <button type="button" class="md-btn" data-md="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-            <button type="button" class="md-btn" data-md="italic" title="Italic (Ctrl+I)"><em>I</em></button>
-            <button type="button" class="md-btn" data-md="h2" title="Heading">H</button>
-            <button type="button" class="md-btn" data-md="ul" title="Bullet list">&bull; List</button>
-            <button type="button" class="md-btn" data-md="ol" title="Numbered list">1. List</button>
-          </div>
-          <textarea id="instructions" name="instructions" required placeholder="Step-by-step directions…"></textarea>
+          <label for="instructions-editor">Instructions</label>
+          <div class="live-editor" id="instructions-editor" contenteditable="true"
+               role="textbox" aria-multiline="true" aria-label="Instructions"
+               data-placeholder="Step-by-step directions…"></div>
+          <input type="hidden" id="instructions" name="instructions" />
         </div>
 
         <div class="field notes">
-          <label for="notes">Notes <span class="hint" style="display:inline">(optional)</span></label>
-          <div class="md-toolbar" data-target="notes" role="toolbar" aria-label="Formatting for notes">
-            <button type="button" class="md-btn" data-md="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-            <button type="button" class="md-btn" data-md="italic" title="Italic (Ctrl+I)"><em>I</em></button>
-            <button type="button" class="md-btn" data-md="h2" title="Heading">H</button>
-            <button type="button" class="md-btn" data-md="ul" title="Bullet list">&bull; List</button>
-            <button type="button" class="md-btn" data-md="ol" title="Numbered list">1. List</button>
-          </div>
-          <textarea id="notes" name="notes" placeholder="Substitutions, tips, where this recipe came from…"></textarea>
-        </div>
-
-        <div class="field">
-          <div class="preview-head">
-            <label style="margin:0">Live preview</label>
-            <button type="button" class="preview-toggle" id="preview-toggle" aria-expanded="true">Hide</button>
-          </div>
-          <div class="recipe-preview" id="recipe-preview" aria-live="polite"></div>
+          <label for="notes-editor">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <div class="live-editor" id="notes-editor" contenteditable="true"
+               role="textbox" aria-multiline="true" aria-label="Notes"
+               data-placeholder="Substitutions, tips, where this recipe came from…"></div>
+          <input type="hidden" id="notes" name="notes" />
         </div>
 
         <div class="field">
@@ -95,7 +75,6 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/md.js"></script>
   <script src="/js/add.js"></script>
   <script src="/js/footer.js"></script>
 </body>
