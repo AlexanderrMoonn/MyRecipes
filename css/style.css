@@ -161,6 +161,13 @@ textarea:focus-visible {
   box-shadow: 0 0 0 var(--ink);
 }
 
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
 .btn-primary {
   background: var(--brick);
   border-color: var(--brick-dark);
@@ -174,6 +181,10 @@ textarea:focus-visible {
 
 .btn-primary:active {
   box-shadow: 0 0 0 var(--brick-dark);
+}
+
+.btn-primary[disabled] {
+  box-shadow: 2px 2px 0 var(--brick-dark);
 }
 
 /* ---------- search ---------- */
@@ -521,10 +532,25 @@ textarea:focus-visible {
   color: var(--pine-dark);
 }
 
+.form-status.pending {
+  color: var(--ink-soft);
+}
+
 .required-note {
   font-size: 0.8rem;
   color: var(--ink-soft);
   margin-bottom: 24px;
+}
+
+/* small notice used when add-on-site isn't configured */
+.setup-note {
+  margin: 0 0 24px;
+  padding: 12px 14px;
+  background: var(--linen);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
 }
 
 /* ---------- footer ---------- */

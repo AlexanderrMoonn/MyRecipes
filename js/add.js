@@ -6,9 +6,18 @@
   const photoPreview = document.getElementById("photo-preview");
   const photoPreviewImg = document.getElementById("photo-preview-img");
 
+  const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB (GitHub-friendly, base64 fits comfortably)
+
   photoInput.addEventListener("change", () => {
     const file = photoInput.files && photoInput.files[0];
     if (!file) {
+      photoPreview.style.display = "none";
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      status.textContent = "That photo is too large (5MB max). Pick a smaller one.";
+      status.className = "form-status error";
+      photoInput.value = "";
       photoPreview.style.display = "none";
       return;
     }
@@ -38,8 +47,17 @@
       return;
     }
 
+    const photoFile = photoInput.files && photoInput.files[0];
+    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
+      status.textContent = "That photo is too large (5MB max). Pick a smaller one.";
+      status.className = "form-status error";
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Filing…";
+    status.textContent = "Filing this recipe…";
+    status.className = "form-status pending";
 
     try {
       const formData = new FormData(form);
@@ -48,10 +66,6 @@
         body: formData,
       });
 
-      // The server always replies with JSON (success or error) — but if
-      // something in front of it (a proxy, an ad blocker extension, a
-      // dropped connection) returns something else, don't let a failed
-      // res.json() call show a confusing low-level error.
       const contentType = res.headers.get("content-type") || "";
       let data = null;
       if (contentType.includes("application/json")) {
@@ -62,19 +76,28 @@
         }
       }
 
-      if (!res.ok) {
-        throw new Error((data && data.error) || `Could not save that recipe (server said: ${res.status}).`);
+      // If the add-on-site function isn't configured yet, the request 404s
+      // (no /api route) or returns a config error. Give a clear message
+      // instead of a cryptic parse failure.
+      if (res.status === 404) {
+        throw new Error(
+          "Adding from the site isn't set up yet. See README (\"Enable adding recipes from the site\"), or add the recipe as a file in recipes/ on the backend."
+        );
       }
-      if (!data) {
+      if (!res.ok) {
+        throw new Error((data && data.error) || `Could not file that recipe (server said: ${res.status}).`);
+      }
+      if (!data || !data.id) {
         throw new Error("The server gave an unexpected response. Please try again.");
       }
 
-      status.textContent = "Recipe filed! Taking you to it now…";
+      status.textContent =
+        "Recipe filed! It'll appear in the box within about a minute, once the site finishes rebuilding.";
       status.className = "form-status success";
-
-      setTimeout(() => {
-        window.location.href = `/recipe.html?id=${encodeURIComponent(data.id)}`;
-      }, 600);
+      form.reset();
+      photoPreview.style.display = "none";
+      submitBtn.textContent = "Filed ✓";
+      // Leave the button disabled so the same recipe isn't double-filed.
     } catch (err) {
       status.textContent = (err && err.message) || "Something went wrong. Please try again.";
       status.className = "form-status error";

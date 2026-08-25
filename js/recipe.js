@@ -56,7 +56,8 @@
         ${notesHtml}
 
         <p class="locked-note">
-          This card is filed permanently. To change or remove it, edit the recipe's file directly on the server.
+          This card is filed in the repo. To change or remove it, edit or delete
+          its file in <code>recipes/</code> on the backend.
         </p>
       </article>
     `;
@@ -74,23 +75,27 @@
     container.innerHTML = `
       <div class="state-message">
         <div class="state-title">Couldn't load this recipe</div>
-        <p>Check that the server is running and try refreshing the page.</p>
+        <p>Refresh the page and try again.</p>
       </div>`;
+  }
+
+  // Basic guard: recipe ids are our own slugs (a-z, 0-9, dash). Reject
+  // anything else so a weird ?id= can't point the fetch somewhere odd.
+  function isValidId(id) {
+    return /^[a-z0-9-]+$/.test(id);
   }
 
   async function load() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    if (!id) return renderNotFound();
+    if (!id || !isValidId(id)) return renderNotFound();
 
     try {
-      const res = await fetch(`/api/recipes/${encodeURIComponent(id)}`);
-      const contentType = res.headers.get("content-type") || "";
-
+      const res = await fetch(`/recipes/${encodeURIComponent(id)}.json`, {
+        cache: "no-cache",
+      });
       if (res.status === 404) return renderNotFound();
-      if (!res.ok || !contentType.includes("application/json")) {
-        return renderLoadError();
-      }
+      if (!res.ok) return renderLoadError();
 
       const recipe = await res.json();
       renderRecipe(recipe);

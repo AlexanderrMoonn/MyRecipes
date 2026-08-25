@@ -1,0 +1,7 @@
+# Always revalidate the recipe data so new recipes show promptly after a rebuild.
+/recipes/*.json
+  Cache-Control: no-cache
+
+# Photos are content-addressed by recipe id, so they can cache hard.
+/photos/*
+  Cache-Control: public, max-age=604800

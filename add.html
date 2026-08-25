@@ -10,7 +10,7 @@
   <header class="site-header">
     <span class="drawer-label">New Card</span>
     <h1 class="site-title"><a href="/">Family Recipes</a></h1>
-    <p class="site-tagline">Fill out the card below. Once it's filed, it's permanent here — double-check before submitting.</p>
+    <p class="site-tagline">Fill out the card below. A new recipe appears in the box within a minute of filing.</p>
     <nav class="top-nav">
       <a class="btn" href="/">&larr; Back to the box</a>
     </nav>
@@ -18,6 +18,7 @@
 
   <main class="wrap">
     <div class="form-sheet">
+      <p class="setup-note" id="setup-note" hidden></p>
       <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
 
       <form id="recipe-form" novalidate>
@@ -45,7 +46,7 @@
         <div class="field">
           <label for="photo">Photo <span class="hint" style="display:inline">(optional)</span></label>
           <div class="photo-drop">
-            <span>JPEG, PNG, WEBP, or GIF — up to 8MB</span>
+            <span>JPEG, PNG, WEBP, or GIF — up to 5MB</span>
             <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp,image/gif" />
             <div class="photo-preview" id="photo-preview">
               <img id="photo-preview-img" alt="Selected photo preview" />
