@@ -120,10 +120,14 @@ export async function onRequestPost({ request, env }) {
 
   const id = `${slugify(name) || "recipe"}-${randomSuffix()}`;
 
-  // Optional photo.
+  // Optional photo. Two sources: an uploaded file (manual add) or a photoUrl
+  // (link import — the image lives on the source site and we pull it in now,
+  // at publish time, so a discarded preview never commits an image).
   let photoFilename = null;
   let photoBase64 = null;
   const photo = formData.get("photo");
+  const photoUrl = (formData.get("photoUrl") || "").toString().trim();
+
   if (photo && typeof photo === "object" && photo.size > 0) {
     const ext = ALLOWED_IMAGE_TYPES[photo.type];
     if (!ext) {
@@ -135,6 +139,26 @@ export async function onRequestPost({ request, env }) {
     const bytes = new Uint8Array(await photo.arrayBuffer());
     photoBase64 = toBase64(bytes);
     photoFilename = `${id}${ext}`;
+  } else if (photoUrl && /^https?:\/\//i.test(photoUrl)) {
+    // Fetch an imported image. Failures here are non-fatal: we just file the
+    // recipe without a photo rather than blocking the whole publish.
+    try {
+      const imgRes = await fetch(photoUrl, {
+        headers: { "User-Agent": "family-recipes-site" },
+        redirect: "follow",
+      });
+      if (imgRes.ok) {
+        const mime = (imgRes.headers.get("content-type") || "").split(";")[0].trim();
+        const ext = ALLOWED_IMAGE_TYPES[mime];
+        const buf = new Uint8Array(await imgRes.arrayBuffer());
+        if (ext && buf.length > 0 && buf.length <= MAX_PHOTO_BYTES) {
+          photoBase64 = toBase64(buf);
+          photoFilename = `${id}${ext}`;
+        }
+      }
+    } catch {
+      /* leave photo empty on any fetch/type/size problem */
+    }
   }
 
   const recipe = {

@@ -207,6 +207,129 @@
     });
   }
 
+  // Map an editor id -> its {el, hidden} for programmatic filling (import).
+  const editorById = {};
+  editors.forEach((pair) => {
+    editorById[pair.el.id.replace(/-editor$/, "")] = pair;
+  });
+
+  // Set an editor's content from a plain Markdown string and re-highlight it.
+  function setEditorText(id, text) {
+    const pair = editorById[id];
+    if (!pair) return;
+    const lines = String(text || "").split("\n");
+    // Put raw text into the editor as text + <br> lines, then let renderEditor
+    // re-highlight from the reconstructed plain text.
+    pair.el.innerHTML = "";
+    lines.forEach((line, i) => {
+      pair.el.appendChild(document.createTextNode(line));
+      if (i < lines.length - 1) pair.el.appendChild(document.createElement("br"));
+    });
+    renderEditor(pair.el, pair.hidden);
+  }
+
+  // ------------------------------------------------------------------
+  // Import from link (Preview)
+  // ------------------------------------------------------------------
+
+  const importUrl = document.getElementById("import-url");
+  const importBtn = document.getElementById("import-btn");
+  const importStatus = document.getElementById("import-status");
+  const nameField = document.getElementById("name");
+  const photoUrlField = document.getElementById("photoUrl");
+  const importedPhoto = document.getElementById("imported-photo");
+  const importedPhotoImg = document.getElementById("imported-photo-img");
+  const importedPhotoClear = document.getElementById("imported-photo-clear");
+
+  function clearImportedPhoto() {
+    if (photoUrlField) photoUrlField.value = "";
+    if (importedPhoto) importedPhoto.setAttribute("hidden", "");
+    if (importedPhotoImg) importedPhotoImg.removeAttribute("src");
+  }
+
+  if (importedPhotoClear) {
+    importedPhotoClear.addEventListener("click", clearImportedPhoto);
+  }
+
+  async function doImport() {
+    const url = (importUrl.value || "").trim();
+    if (!/^https?:\/\//i.test(url)) {
+      importStatus.textContent = "Paste a full link starting with http:// or https://.";
+      importStatus.className = "import-status error";
+      importUrl.focus();
+      return;
+    }
+
+    importBtn.disabled = true;
+    const originalLabel = importBtn.textContent;
+    importBtn.textContent = "Reading…";
+    importStatus.textContent = "Reading that page…";
+    importStatus.className = "import-status pending";
+
+    try {
+      const res = await fetch("/api/import", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+      let data = null;
+      if (contentType.includes("application/json")) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      }
+
+      if (res.status === 404) {
+        throw new Error(
+          "Link import isn't set up on the server yet. See README, or add the recipe by hand."
+        );
+      }
+      if (!res.ok || !data) {
+        throw new Error((data && data.error) || "Couldn't import that link.");
+      }
+
+      // Fill the form for review.
+      if (nameField) nameField.value = data.name || "";
+      setEditorText("ingredients", data.ingredients || "");
+      setEditorText("instructions", data.instructions || "");
+      setEditorText("notes", data.notes || "");
+
+      // Imported photo: show a preview and stash the URL for publish.
+      if (data.photoUrl) {
+        photoUrlField.value = data.photoUrl;
+        importedPhotoImg.src = data.photoUrl;
+        importedPhoto.removeAttribute("hidden");
+      } else {
+        clearImportedPhoto();
+      }
+
+      importStatus.textContent =
+        "Imported. Review and edit below, then Publish. Nothing is saved yet.";
+      importStatus.className = "import-status success";
+      if (nameField) nameField.focus();
+    } catch (err) {
+      importStatus.textContent = (err && err.message) || "Couldn't import that link.";
+      importStatus.className = "import-status error";
+    } finally {
+      importBtn.disabled = false;
+      importBtn.textContent = originalLabel;
+    }
+  }
+
+  if (importBtn) {
+    importBtn.addEventListener("click", doImport);
+    importUrl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        doImport();
+      }
+    });
+  }
+
   // ------------------------------------------------------------------
   // Photo preview (unchanged)
   // ------------------------------------------------------------------
@@ -298,7 +421,7 @@
       }
 
       status.textContent =
-        "Recipe filed! It'll appear in the box within about a minute, once the site finishes rebuilding.";
+        "Recipe published! It'll appear in the box within about a minute, once the site finishes rebuilding.";
       status.className = "form-status success";
       form.reset();
       editors.forEach(({ el, hidden }) => {
@@ -307,12 +430,18 @@
         el.classList.add("is-empty");
       });
       photoPreview.style.display = "none";
-      submitBtn.textContent = "Filed ✓";
+      clearImportedPhoto();
+      if (importUrl) importUrl.value = "";
+      if (importStatus) {
+        importStatus.textContent = "";
+        importStatus.className = "import-status";
+      }
+      submitBtn.textContent = "Published ✓";
     } catch (err) {
       status.textContent = (err && err.message) || "Something went wrong. Please try again.";
       status.className = "form-status error";
       submitBtn.disabled = false;
-      submitBtn.textContent = "File this recipe";
+      submitBtn.textContent = "Publish recipe";
     }
   });
 })();

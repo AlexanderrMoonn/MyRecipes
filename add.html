@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Add a Recipe — Family Recipes</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css?v=3" />
 </head>
 <body>
   <header class="site-header">
@@ -19,6 +19,17 @@
   <main class="wrap">
     <div class="form-sheet">
       <p class="setup-note" id="setup-note" hidden></p>
+
+      <div class="import-panel">
+        <label for="import-url" class="import-label">Import from a link</label>
+        <div class="import-row">
+          <input type="url" id="import-url" placeholder="Paste a recipe URL, e.g. https://…" autocomplete="off" />
+          <button type="button" class="btn" id="import-btn">Preview</button>
+        </div>
+        <p class="import-hint">Works best on major recipe sites. We'll pull in the name, ingredients, and steps for you to review before publishing.</p>
+        <p class="import-status" id="import-status" role="status"></p>
+      </div>
+
       <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
 
       <form id="recipe-form" novalidate>
@@ -61,11 +72,19 @@
               <img id="photo-preview-img" alt="Selected photo preview" />
             </div>
           </div>
+          <input type="hidden" id="photoUrl" name="photoUrl" />
+          <div class="imported-photo" id="imported-photo" hidden>
+            <img id="imported-photo-img" alt="Imported photo preview" />
+            <div class="imported-photo-meta">
+              <span>Imported from the link — will be saved when you publish.</span>
+              <button type="button" class="imported-photo-clear" id="imported-photo-clear">Remove</button>
+            </div>
+          </div>
         </div>
 
         <div class="form-actions">
           <a class="btn" href="/">Cancel</a>
-          <button type="submit" class="btn btn-primary" id="submit-btn">File this recipe</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Publish recipe</button>
         </div>
 
         <p class="form-status" id="form-status" role="status"></p>
@@ -75,7 +94,7 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/add.js"></script>
-  <script src="/js/footer.js"></script>
+  <script src="/js/add.js?v=3"></script>
+  <script src="/js/footer.js?v=3"></script>
 </body>
 </html>

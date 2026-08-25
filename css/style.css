@@ -716,3 +716,120 @@ textarea:focus-visible {
   padding: 1px 5px;
   border-radius: 2px;
 }
+
+/* ---------- import from link panel ---------- */
+
+.import-panel {
+  background: var(--linen);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 18px 16px;
+  margin-bottom: 24px;
+}
+
+.import-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pine-dark);
+  margin-bottom: 10px;
+}
+
+.import-row {
+  display: flex;
+  gap: 10px;
+}
+
+.import-row input[type="url"] {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-family: var(--font-body);
+}
+
+.import-row input[type="url"]:focus {
+  border-color: var(--pine);
+}
+
+.import-row .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.import-hint {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.import-status {
+  min-height: 1.3em;
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+}
+
+.import-status.error { color: var(--brick-dark); }
+.import-status.success { color: var(--pine-dark); }
+.import-status.pending { color: var(--ink-soft); }
+
+@media (max-width: 480px) {
+  .import-row {
+    flex-direction: column;
+  }
+  .import-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---------- imported photo indicator ---------- */
+
+.imported-photo {
+  margin-top: 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fffdf8;
+}
+
+.imported-photo img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.imported-photo-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.imported-photo-clear {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  background: var(--card);
+  color: var(--brick-dark);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.imported-photo-clear:hover {
+  border-color: var(--brick);
+}
