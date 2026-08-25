@@ -643,99 +643,76 @@ textarea:focus-visible {
   font-style: italic;
 }
 
-/* ---------- markdown toolbar (add form) ---------- */
+/* ---------- live markdown editor (add form) ---------- */
 
-.md-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.md-btn {
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-  line-height: 1;
-  padding: 6px 10px;
-  background: var(--card);
-  color: var(--ink);
+.live-editor {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px 14px;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
-}
-
-.md-btn:hover {
-  background: var(--linen-dark);
-  border-color: var(--pine);
-}
-
-.md-btn strong,
-.md-btn em {
-  font-size: 0.95rem;
-}
-
-/* ---------- live preview panel ---------- */
-
-.preview-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.preview-toggle {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 4px 10px;
-  background: var(--card);
-  color: var(--pine-dark);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.preview-toggle:hover {
-  border-color: var(--pine);
-}
-
-.recipe-preview {
   background: #fffdf8;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 22px clamp(16px, 4vw, 28px);
+  color: var(--ink);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  cursor: text;
 }
 
-.recipe-preview h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  margin: 0 0 18px;
-  line-height: 1.1;
+.field.notes .live-editor {
+  min-height: 90px;
 }
 
-.recipe-preview .recipe-section {
-  margin-bottom: 20px;
+.live-editor:focus {
+  outline: 3px solid var(--mustard);
+  outline-offset: 2px;
+  border-color: var(--pine);
 }
 
-.recipe-preview .recipe-section:last-child {
-  margin-bottom: 0;
-}
-
-.recipe-preview .recipe-section h2 {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--pine-dark);
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 6px;
-  margin: 0 0 12px;
-}
-
-.recipe-preview .preview-empty {
+/* placeholder shown when empty and not focused */
+.live-editor.is-empty::before {
+  content: attr(data-placeholder);
   color: var(--ink-soft);
-  opacity: 0.6;
-  margin: 0;
+  opacity: 0.7;
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+
+/* the dim Markdown markers (** , * , ## , - , 1.) kept visible while typing */
+.live-editor .md-mark {
+  color: var(--ink-soft);
+  opacity: 0.45;
+}
+
+.live-editor strong {
+  font-weight: 700;
+}
+
+.live-editor em {
+  font-style: italic;
+}
+
+/* headings styled live inside the editor */
+.live-editor .md-line.md-h1,
+.live-editor .md-line.md-h2,
+.live-editor .md-line.md-h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.live-editor .md-line.md-h1 { font-size: 1.4rem; }
+.live-editor .md-line.md-h2 { font-size: 1.22rem; }
+.live-editor .md-line.md-h3 { font-size: 1.1rem; }
+
+.hint code,
+.live-editor + .hint code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--linen-dark);
+  padding: 1px 5px;
+  border-radius: 2px;
 }
