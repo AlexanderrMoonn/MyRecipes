@@ -44,6 +44,9 @@
 
     container.innerHTML = `
       <article class="recipe-sheet">
+        <div class="recipe-actions">
+          <a class="btn" href="/add.html?edit=${encodeURIComponent(recipe.id)}">Edit this recipe</a>
+        </div>
         ${photoHtml}
         <h1>${escapeHtml(recipe.name)}</h1>
         <p class="meta">Filed ${formatDate(recipe.createdAt)}</p>

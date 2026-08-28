@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Add a Recipe — Family Recipes</title>
-  <link rel="stylesheet" href="/css/style.css?v=3" />
+  <title id="page-title">Add a Recipe — Family Recipes</title>
+  <link rel="stylesheet" href="/css/style.css?v=4" />
 </head>
 <body>
   <header class="site-header">
-    <span class="drawer-label">New Card</span>
+    <span class="drawer-label" id="drawer-label">New Card</span>
     <h1 class="site-title"><a href="/">Family Recipes</a></h1>
-    <p class="site-tagline">Fill out the card below. A new recipe appears in the box within a minute of filing.</p>
+    <p class="site-tagline" id="page-tagline">Fill out the card below. A new recipe appears in the box within a minute of filing.</p>
     <nav class="top-nav">
       <a class="btn" href="/">&larr; Back to the box</a>
     </nav>
@@ -19,6 +19,17 @@
   <main class="wrap">
     <div class="form-sheet">
       <p class="setup-note" id="setup-note" hidden></p>
+      <p class="edit-banner" id="edit-banner" hidden></p>
+
+      <div class="password-panel" id="password-panel" hidden>
+        <label for="edit-password">Family password</label>
+        <input type="password" id="edit-password" name="password" autocomplete="current-password" placeholder="Enter the password to save changes" />
+        <label class="remember-row">
+          <input type="checkbox" id="remember-password" checked />
+          Remember for this browser tab
+        </label>
+        <p class="password-error" id="password-error"></p>
+      </div>
 
       <div class="import-panel">
         <label for="import-url" class="import-label">Import from a link</label>
@@ -33,6 +44,9 @@
       <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
 
       <form id="recipe-form" novalidate>
+        <input type="hidden" id="recipe-id" name="id" value="" />
+        <input type="hidden" id="removePhoto" name="removePhoto" value="" />
+
         <div class="field">
           <label for="name">Recipe name</label>
           <input type="text" id="name" name="name" required maxlength="120" placeholder="e.g. Grandma's Sunday Sauce" />
@@ -40,15 +54,27 @@
 
         <div class="field">
           <label for="ingredients-editor">Ingredients</label>
+          <div class="md-toolbar" data-target="ingredients">
+            <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
+            <button type="button" data-action="italic" title="Italic"><em>I</em></button>
+            <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
+          </div>
           <div class="live-editor" id="ingredients-editor" contenteditable="true"
                role="textbox" aria-multiline="true" aria-label="Ingredients"
                data-placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></div>
           <input type="hidden" id="ingredients" name="ingredients" />
-          <span class="hint">Type <code>**bold**</code>, <code>*italic*</code>, <code>## heading</code>, or <code>- list</code> — it styles as you type.</span>
+          <span class="hint">Press Enter for a new line. Or use the buttons above — they type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you.</span>
         </div>
 
         <div class="field">
           <label for="instructions-editor">Instructions</label>
+          <div class="md-toolbar" data-target="instructions">
+            <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
+            <button type="button" data-action="italic" title="Italic"><em>I</em></button>
+            <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
+            <button type="button" data-action="number" title="Numbered list">1. List</button>
+            <button type="button" data-action="heading" title="Section heading">Heading</button>
+          </div>
           <div class="live-editor" id="instructions-editor" contenteditable="true"
                role="textbox" aria-multiline="true" aria-label="Instructions"
                data-placeholder="Step-by-step directions…"></div>
@@ -57,6 +83,11 @@
 
         <div class="field notes">
           <label for="notes-editor">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <div class="md-toolbar" data-target="notes">
+            <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
+            <button type="button" data-action="italic" title="Italic"><em>I</em></button>
+            <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
+          </div>
           <div class="live-editor" id="notes-editor" contenteditable="true"
                role="textbox" aria-multiline="true" aria-label="Notes"
                data-placeholder="Substitutions, tips, where this recipe came from…"></div>
@@ -65,6 +96,15 @@
 
         <div class="field">
           <label for="photo">Photo <span class="hint" style="display:inline">(optional)</span></label>
+
+          <div class="current-photo" id="current-photo" hidden>
+            <img id="current-photo-img" alt="Current recipe photo" />
+            <div class="current-photo-meta">
+              <span>Current photo — pick a new file below to replace it.</span>
+              <button type="button" class="current-photo-clear" id="current-photo-clear">Remove</button>
+            </div>
+          </div>
+
           <div class="photo-drop">
             <span>JPEG, PNG, WEBP, or GIF — up to 5MB</span>
             <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp,image/gif" />
@@ -94,7 +134,7 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/add.js?v=3"></script>
-  <script src="/js/footer.js?v=3"></script>
+  <script src="/js/add.js?v=4"></script>
+  <script src="/js/footer.js?v=4"></script>
 </body>
 </html>
