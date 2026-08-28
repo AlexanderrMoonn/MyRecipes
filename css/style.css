@@ -833,3 +833,162 @@ textarea:focus-visible {
 .imported-photo-clear:hover {
   border-color: var(--brick);
 }
+
+/* ---------- fix: each Markdown line must be its own visual line ----------
+   (.md-line was inline by default, so two non-empty lines typed after
+   Enter would render back-to-back on the same row even though the
+   underlying text had a real newline between them) */
+.live-editor .md-line {
+  display: block;
+}
+
+/* ---------- formatting toolbar (add/edit form) ---------- */
+
+.md-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.md-toolbar button {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--linen);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.md-toolbar button:hover {
+  border-color: var(--pine);
+  color: var(--pine-dark);
+}
+
+.md-toolbar button:active {
+  background: var(--linen-dark);
+}
+
+/* ---------- edit mode ---------- */
+
+.edit-banner {
+  margin: 0 0 24px;
+  padding: 12px 14px;
+  background: var(--linen);
+  border: 1px dashed var(--pine);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  color: var(--pine-dark);
+}
+
+.password-panel {
+  background: var(--linen);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 18px 16px;
+  margin-bottom: 24px;
+}
+
+.password-panel label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pine-dark);
+  margin-bottom: 8px;
+}
+
+.password-panel input[type="password"] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-family: var(--font-body);
+}
+
+.password-panel input[type="password"]:focus {
+  border-color: var(--pine);
+}
+
+.password-panel .remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.password-panel .remember-row input[type="checkbox"] {
+  width: auto;
+}
+
+.password-panel .password-error {
+  min-height: 1.3em;
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--brick-dark);
+}
+
+/* ---------- current photo (edit mode) ---------- */
+
+.current-photo {
+  margin-bottom: 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fffdf8;
+}
+
+.current-photo img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.current-photo-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.current-photo-clear {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  background: var(--card);
+  color: var(--brick-dark);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.current-photo-clear:hover {
+  border-color: var(--brick);
+}
+
+/* ---------- edit button on recipe detail page ---------- */
+
+.recipe-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
