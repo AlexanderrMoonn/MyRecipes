@@ -226,8 +226,7 @@ main.wrap {
   cursor: default;
 }
 
-/* ---------- home: intro + search ---------- */
-
+/* ---------- home: search + list header ---------- */
 
 .list-head {
   display: flex;
