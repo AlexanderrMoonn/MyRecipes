@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="page-title">Add a Recipe — Family Recipes</title>
-  <link rel="stylesheet" href="/css/style.css?v=4" />
+  <link rel="stylesheet" href="/css/style.css?v=5" />
 </head>
 <body>
   <header class="site-header">
@@ -53,21 +53,26 @@
         </div>
 
         <div class="field">
-          <label for="ingredients-editor">Ingredients</label>
+          <label for="ingredients">Ingredients</label>
           <div class="md-toolbar" data-target="ingredients">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
             <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
           </div>
-          <div class="live-editor" id="ingredients-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Ingredients"
-               data-placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></div>
-          <input type="hidden" id="ingredients" name="ingredients" />
-          <span class="hint">Press Enter for a new line. Or use the buttons above — they type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you.</span>
+          <div class="md-editor">
+            <textarea class="md-input" id="ingredients" name="ingredients" required rows="6"
+                      spellcheck="true" aria-describedby="ingredients-hint"
+                      placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></textarea>
+            <span class="hint" id="ingredients-hint">Press Enter for a new line. The buttons above type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you, and a preview of the finished card appears as soon as you use any of them.</span>
+            <div class="md-preview" id="ingredients-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field">
-          <label for="instructions-editor">Instructions</label>
+          <label for="instructions">Instructions</label>
           <div class="md-toolbar" data-target="instructions">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
@@ -75,23 +80,33 @@
             <button type="button" data-action="number" title="Numbered list">1. List</button>
             <button type="button" data-action="heading" title="Section heading">Heading</button>
           </div>
-          <div class="live-editor" id="instructions-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Instructions"
-               data-placeholder="Step-by-step directions…"></div>
-          <input type="hidden" id="instructions" name="instructions" />
+          <div class="md-editor">
+            <textarea class="md-input" id="instructions" name="instructions" required rows="8"
+                      spellcheck="true"
+                      placeholder="Step-by-step directions…"></textarea>
+            <div class="md-preview" id="instructions-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field notes">
-          <label for="notes-editor">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <label for="notes">Notes <span class="hint" style="display:inline">(optional)</span></label>
           <div class="md-toolbar" data-target="notes">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
             <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
           </div>
-          <div class="live-editor" id="notes-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Notes"
-               data-placeholder="Substitutions, tips, where this recipe came from…"></div>
-          <input type="hidden" id="notes" name="notes" />
+          <div class="md-editor">
+            <textarea class="md-input md-input-short" id="notes" name="notes" rows="4"
+                      spellcheck="true"
+                      placeholder="Substitutions, tips, where this recipe came from…"></textarea>
+            <div class="md-preview" id="notes-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field">
@@ -134,7 +149,8 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/add.js?v=4"></script>
-  <script src="/js/footer.js?v=4"></script>
+  <script src="/js/md.js?v=5"></script>
+  <script src="/js/add.js?v=5"></script>
+  <script src="/js/footer.js?v=5"></script>
 </body>
 </html>

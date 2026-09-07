@@ -455,8 +455,7 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
-.field input[type="text"],
-.field textarea {
+.field input[type="text"] {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--rule);
@@ -465,21 +464,10 @@ textarea:focus-visible {
   color: var(--ink);
   font-size: 1rem;
   font-family: var(--font-body);
-  resize: vertical;
 }
 
-.field input[type="text"]:focus,
-.field textarea:focus {
+.field input[type="text"]:focus {
   border-color: var(--pine);
-}
-
-.field textarea {
-  min-height: 140px;
-  line-height: 1.6;
-}
-
-.field.notes textarea {
-  min-height: 90px;
 }
 
 .photo-drop {
@@ -643,9 +631,11 @@ textarea:focus-visible {
   font-style: italic;
 }
 
-/* ---------- live markdown editor (add form) ---------- */
+/* ---------- markdown editor (add form) ---------- */
 
-.live-editor {
+/* The editable field is a real textarea, so the caret, selection and undo
+   are the browser's — nothing here may interfere with typing. */
+.md-input {
   width: 100%;
   min-height: 140px;
   padding: 12px 14px;
@@ -656,60 +646,59 @@ textarea:focus-visible {
   font-size: 1rem;
   font-family: var(--font-body);
   line-height: 1.6;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  cursor: text;
+  /* the box grows to fit its text (see autoGrow in add.js), so a drag
+     handle would only fight the script */
+  resize: none;
+  overflow: hidden;
+  display: block;
 }
 
-.field.notes .live-editor {
+.md-input-short {
   min-height: 90px;
 }
 
-.live-editor:focus {
-  outline: 3px solid var(--mustard);
-  outline-offset: 2px;
+.md-input:focus {
   border-color: var(--pine);
 }
 
-/* placeholder shown when empty and not focused */
-.live-editor.is-empty::before {
-  content: attr(data-placeholder);
+.md-input::placeholder {
   color: var(--ink-soft);
   opacity: 0.7;
-  pointer-events: none;
-  white-space: pre-wrap;
 }
 
-/* the dim Markdown markers (** , * , ## , - , 1.) kept visible while typing */
-.live-editor .md-mark {
+.md-editor .hint {
+  margin-top: 6px;
+}
+
+/* Live preview: the same md.js output the recipe page shows, so the writer
+   sees the card, not the markup. */
+.md-preview {
+  margin-top: 12px;
+  padding: 12px 14px 14px;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  background: var(--linen);
+}
+
+.md-preview-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--ink-soft);
-  opacity: 0.45;
+  margin-bottom: 8px;
 }
 
-.live-editor strong {
-  font-weight: 700;
+.md-preview .rich-text {
+  font-size: 0.95rem;
 }
 
-.live-editor em {
-  font-style: italic;
-}
+.md-preview .rich-text h1 { font-size: 1.24rem; }
+.md-preview .rich-text h2 { font-size: 1.12rem; }
+.md-preview .rich-text h3 { font-size: 1.02rem; }
 
-/* headings styled live inside the editor */
-.live-editor .md-line.md-h1,
-.live-editor .md-line.md-h2,
-.live-editor .md-line.md-h3 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.live-editor .md-line.md-h1 { font-size: 1.4rem; }
-.live-editor .md-line.md-h2 { font-size: 1.22rem; }
-.live-editor .md-line.md-h3 { font-size: 1.1rem; }
-
-.hint code,
-.live-editor + .hint code {
+.hint code {
   font-family: var(--font-mono);
   font-size: 0.85em;
   background: var(--linen-dark);
@@ -832,14 +821,6 @@ textarea:focus-visible {
 
 .imported-photo-clear:hover {
   border-color: var(--brick);
-}
-
-/* ---------- fix: each Markdown line must be its own visual line ----------
-   (.md-line was inline by default, so two non-empty lines typed after
-   Enter would render back-to-back on the same row even though the
-   underlying text had a real newline between them) */
-.live-editor .md-line {
-  display: block;
 }
 
 /* ---------- formatting toolbar (add/edit form) ---------- */
