@@ -4,21 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="page-title">Add a Recipe — Family Recipes</title>
-  <link rel="stylesheet" href="/css/style.css?v=4" />
+  <link rel="stylesheet" href="/css/style.css?v=6" />
 </head>
 <body>
   <header class="site-header">
-    <span class="drawer-label" id="drawer-label">New Card</span>
-    <h1 class="site-title"><a href="/">Family Recipes</a></h1>
-    <p class="site-tagline" id="page-tagline">Fill out the card below. A new recipe appears in the box within a minute of filing.</p>
-    <nav class="top-nav">
-      <a class="btn" href="/">&larr; Back to the box</a>
-    </nav>
+    <div class="wrap masthead">
+      <p class="wordmark"><a href="/">Family Recipes</a></p>
+      <div class="masthead-actions">
+        <a class="btn" href="/">All recipes</a>
+      </div>
+    </div>
+    <div class="category-bar">
+      <nav class="wrap category-nav" id="category-nav" aria-label="Recipe categories" hidden></nav>
+    </div>
   </header>
 
   <main class="wrap">
     <div class="form-sheet">
-      <p class="setup-note" id="setup-note" hidden></p>
+      <h1 id="form-heading">Add a recipe</h1>
+
       <p class="edit-banner" id="edit-banner" hidden></p>
 
       <div class="password-panel" id="password-panel" hidden>
@@ -35,13 +39,10 @@
         <label for="import-url" class="import-label">Import from a link</label>
         <div class="import-row">
           <input type="url" id="import-url" placeholder="Paste a recipe URL, e.g. https://…" autocomplete="off" />
-          <button type="button" class="btn" id="import-btn">Preview</button>
+          <button type="button" class="btn" id="import-btn">Fetch</button>
         </div>
-        <p class="import-hint">Works best on major recipe sites. We'll pull in the name, ingredients, and steps for you to review before publishing.</p>
         <p class="import-status" id="import-status" role="status"></p>
       </div>
-
-      <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
 
       <form id="recipe-form" novalidate>
         <input type="hidden" id="recipe-id" name="id" value="" />
@@ -52,22 +53,34 @@
           <input type="text" id="name" name="name" required maxlength="120" placeholder="e.g. Grandma's Sunday Sauce" />
         </div>
 
+        <fieldset class="field">
+          <legend class="fieldset-label">Categories</legend>
+          <div class="tag-choices" id="tag-choices"></div>
+          <label class="visually-hidden" for="custom-tags">Other tags</label>
+          <input type="text" id="custom-tags" name="customTags" maxlength="120"
+                 placeholder="Other tags, separated by commas" />
+        </fieldset>
+
         <div class="field">
-          <label for="ingredients-editor">Ingredients</label>
+          <label for="ingredients">Ingredients</label>
           <div class="md-toolbar" data-target="ingredients">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
             <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
           </div>
-          <div class="live-editor" id="ingredients-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Ingredients"
-               data-placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></div>
-          <input type="hidden" id="ingredients" name="ingredients" />
-          <span class="hint">Press Enter for a new line. Or use the buttons above — they type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you.</span>
+          <div class="md-editor">
+            <textarea class="md-input" id="ingredients" name="ingredients" required rows="6"
+                      spellcheck="true"
+                      placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></textarea>
+            <div class="md-preview" id="ingredients-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field">
-          <label for="instructions-editor">Instructions</label>
+          <label for="instructions">Instructions</label>
           <div class="md-toolbar" data-target="instructions">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
@@ -75,32 +88,42 @@
             <button type="button" data-action="number" title="Numbered list">1. List</button>
             <button type="button" data-action="heading" title="Section heading">Heading</button>
           </div>
-          <div class="live-editor" id="instructions-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Instructions"
-               data-placeholder="Step-by-step directions…"></div>
-          <input type="hidden" id="instructions" name="instructions" />
+          <div class="md-editor">
+            <textarea class="md-input" id="instructions" name="instructions" required rows="8"
+                      spellcheck="true"
+                      placeholder="Step-by-step directions…"></textarea>
+            <div class="md-preview" id="instructions-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field notes">
-          <label for="notes-editor">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <label for="notes">Notes <span class="optional">(optional)</span></label>
           <div class="md-toolbar" data-target="notes">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
             <button type="button" data-action="bullet" title="Bullet list">&bull; List</button>
           </div>
-          <div class="live-editor" id="notes-editor" contenteditable="true"
-               role="textbox" aria-multiline="true" aria-label="Notes"
-               data-placeholder="Substitutions, tips, where this recipe came from…"></div>
-          <input type="hidden" id="notes" name="notes" />
+          <div class="md-editor">
+            <textarea class="md-input md-input-short" id="notes" name="notes" rows="4"
+                      spellcheck="true"
+                      placeholder="Substitutions, tips, where this recipe came from…"></textarea>
+            <div class="md-preview" id="notes-preview" hidden>
+              <span class="md-preview-label">Preview</span>
+              <div class="rich-text"></div>
+            </div>
+          </div>
         </div>
 
         <div class="field">
-          <label for="photo">Photo <span class="hint" style="display:inline">(optional)</span></label>
+          <label for="photo">Photo <span class="optional">(optional)</span></label>
 
           <div class="current-photo" id="current-photo" hidden>
             <img id="current-photo-img" alt="Current recipe photo" />
             <div class="current-photo-meta">
-              <span>Current photo — pick a new file below to replace it.</span>
+              <span>Current photo</span>
               <button type="button" class="current-photo-clear" id="current-photo-clear">Remove</button>
             </div>
           </div>
@@ -116,7 +139,7 @@
           <div class="imported-photo" id="imported-photo" hidden>
             <img id="imported-photo-img" alt="Imported photo preview" />
             <div class="imported-photo-meta">
-              <span>Imported from the link — will be saved when you publish.</span>
+              <span>From the link</span>
               <button type="button" class="imported-photo-clear" id="imported-photo-clear">Remove</button>
             </div>
           </div>
@@ -124,7 +147,7 @@
 
         <div class="form-actions">
           <a class="btn" href="/">Cancel</a>
-          <button type="submit" class="btn btn-primary" id="submit-btn">Publish recipe</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Save recipe</button>
         </div>
 
         <p class="form-status" id="form-status" role="status"></p>
@@ -134,7 +157,9 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/add.js?v=4"></script>
-  <script src="/js/footer.js?v=4"></script>
+  <script src="/js/site.js?v=6"></script>
+  <script src="/js/md.js?v=6"></script>
+  <script src="/js/add.js?v=6"></script>
+  <script src="/js/footer.js?v=6"></script>
 </body>
 </html>

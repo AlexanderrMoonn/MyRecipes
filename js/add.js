@@ -10,228 +10,339 @@
 
   const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
 
+  // The header's category bar is shared with the rest of the site; nothing
+  // in it is the "current" page while you are filling in this form.
+  Site.renderCategoryNav(null);
+
   // ------------------------------------------------------------------
-  // Live Markdown editor
+  // Markdown editor
   //
-  // Each editable field is a contenteditable <div> (a plain textarea can't
-  // show styled text). As you type, the text between Markdown markers is
-  // styled live while the markers themselves stay visible but dimmed, so what
-  // you edit is always the real Markdown. The plain-text Markdown is mirrored
-  // into a hidden <input> so the form submits exactly what gets stored.
+  // Each editable field is a plain <textarea>: the browser owns the caret,
+  // the selection, undo/redo, IME, autocorrect and mobile keyboards, so
+  // typing behaves exactly the way typing is supposed to. (The previous
+  // version was a contenteditable div that re-rendered itself on every
+  // keystroke and then restored the caret from a character offset measured
+  // without the line breaks it had just written — which is why Enter left
+  // the caret on the old line and Backspace jumped up a line.)
   //
-  // Every rendered line is its own block-level element (see .md-line in
-  // style.css), which is what makes Enter actually start a new visual line.
+  // What we add on top of the textarea is only ever *text* editing:
+  //   - a live preview underneath, rendered by the very same md.js the
+  //     recipe page uses, so what you see is what gets filed;
+  //   - toolbar buttons and Ctrl/Cmd+B / Ctrl/Cmd+I that wrap the selection;
+  //   - Enter continuing a "- " or "1. " list, the way notes apps do;
+  //   - the box growing to fit what you have written.
+  //
+  // Typing is left entirely to the browser; every *scripted* edit goes
+  // through replaceRange() -> execCommand("insertText"), which keeps those
+  // changes on the browser's native undo stack too.
   // ------------------------------------------------------------------
 
   const EDITORS = ["ingredients", "instructions", "notes"];
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+  // id -> editor state
+  const editorById = {};
+  const editors = [];
+
+  // Markdown that renders to something other than the lines you typed. Plain
+  // lines already look like the card, so a preview of them is just the same
+  // text twice — the panel only earns its space once there is syntax in play.
+  const MARKDOWN_RE = [
+    /^[ \t]*#{1,3}[ \t]+\S/m, // heading
+    /^[ \t]*[-*][ \t]+\S/m, // bullet
+    /^[ \t]*\d+\.[ \t]+\S/m, // numbered
+    /\*\*[^*\n]+\*\*/, // **bold**
+    /__[^_\n]+__/, // __bold__
+    /(^|[^*])\*[^*\n]+\*(?!\*)/, // *italic*
+    /(^|[^_])_[^_\n]+_(?!_)/, // _italic_
+    /\[[^\]\n]+\]\([^)\s]+\)/, // [link](url)
+    /\n[ \t]*\n/, // blank line = new paragraph
+  ];
+
+  function looksLikeMarkdown(text) {
+    return MARKDOWN_RE.some((re) => re.test(text));
   }
 
-  // Turn one line of raw Markdown text into highlighted HTML. Markers are kept
-  // (wrapped in a dim <span class="md-mark">) so the source stays visible.
-  function highlightLine(line) {
-    if (line === "") return '<span class="md-line md-blank"><br></span>';
-    let html = escapeHtml(line);
-
-    // Heading: leading #, ##, ### (keep the hashes, style the whole line)
-    const h = html.match(/^(#{1,3})(\s+)(.*)$/);
-    if (h) {
-      const level = h[1].length;
-      return (
-        `<span class="md-line md-h${level}">` +
-        `<span class="md-mark">${h[1]}${h[2]}</span>` +
-        inlineHighlight(h[3]) +
-        `</span>`
-      );
+  function renderPreview(pair) {
+    const text = pair.input.value;
+    if (!pair.preview) return;
+    if (!text.trim() || !looksLikeMarkdown(text)) {
+      pair.preview.setAttribute("hidden", "");
+      pair.previewBody.innerHTML = "";
+      return;
     }
-
-    // List item: leading "- " or "* " or "1. "
-    const ul = html.match(/^(\s*)([-*])(\s+)(.*)$/);
-    if (ul) {
-      return (
-        `<span class="md-line">${ul[1]}` +
-        `<span class="md-mark">${ul[2]}${ul[3]}</span>` +
-        inlineHighlight(ul[4]) +
-        `</span>`
-      );
-    }
-    const ol = html.match(/^(\s*)(\d+\.)(\s+)(.*)$/);
-    if (ol) {
-      return (
-        `<span class="md-line">${ol[1]}` +
-        `<span class="md-mark">${ol[2]}${ol[3]}</span>` +
-        inlineHighlight(ol[4]) +
-        `</span>`
-      );
-    }
-
-    return `<span class="md-line">${inlineHighlight(html)}</span>`;
+    // renderMarkdown escapes everything before adding back its own fixed set
+    // of tags, so submitted text can never inject markup here.
+    pair.previewBody.innerHTML =
+      typeof window.renderMarkdown === "function"
+        ? window.renderMarkdown(text)
+        : "";
+    pair.preview.removeAttribute("hidden");
   }
 
-  // Inline: **bold**, __bold__, *italic*, _italic_ — markers kept but dimmed.
-  function inlineHighlight(s) {
-    let out = s;
-    out = out.replace(
-      /\*\*([^*]+)\*\*/g,
-      '<span class="md-mark">**</span><strong>$1</strong><span class="md-mark">**</span>'
-    );
-    out = out.replace(
-      /__([^_]+)__/g,
-      '<span class="md-mark">__</span><strong>$1</strong><span class="md-mark">__</span>'
-    );
-    out = out.replace(
-      /(^|[^*])\*([^*\n]+)\*(?!\*)/g,
-      '$1<span class="md-mark">*</span><em>$2</em><span class="md-mark">*</span>'
-    );
-    out = out.replace(
-      /(^|[^_])_([^_\n]+)_(?!_)/g,
-      '$1<span class="md-mark">_</span><em>$2</em><span class="md-mark">_</span>'
-    );
-    return out;
+  // Grow the box to fit its content instead of scrolling inside a fixed
+  // window — a recipe is read all at once, so it should be visible all at once.
+  // scrollHeight covers content + padding only, so add the borders back or
+  // box-sizing: border-box leaves the last line clipped by a couple of pixels.
+  function autoGrow(input) {
+    const cs = window.getComputedStyle(input);
+    const borders =
+      (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + borders + "px";
   }
 
-  // Read the editor's text content as plain Markdown (newlines preserved).
-  function getPlainText(el) {
-    const text = [];
-    el.childNodes.forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text.push(node.textContent);
-      } else if (node.nodeName === "BR") {
-        text.push("\n");
-      } else {
-        // a rendered line wrapper (.md-line) — its textContent is the line
-        text.push(node.textContent);
-        text.push("\n");
-      }
+  function sync(pair) {
+    autoGrow(pair.input);
+    renderPreview(pair);
+  }
+
+  // Replace [start, end) with `text`, then leave the selection at
+  // [selStart, selEnd] (defaults to a caret after the inserted text).
+  // Uses execCommand so the edit lands on the native undo stack; falls back
+  // to setRangeText where that is unavailable.
+  function replaceRange(input, start, end, text, selStart, selEnd) {
+    const pair = editorById[input.id];
+    input.focus();
+    input.setSelectionRange(start, end);
+
+    let handled = false;
+    try {
+      handled =
+        text === ""
+          ? end > start && document.execCommand("delete")
+          : document.execCommand("insertText", false, text);
+    } catch (err) {
+      handled = false;
+    }
+    if (!handled) {
+      input.setRangeText(text, start, end, "end");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    const caret = start + text.length;
+    input.setSelectionRange(
+      selStart == null ? caret : selStart,
+      selEnd == null ? (selStart == null ? caret : selStart) : selEnd
+    );
+    if (pair) sync(pair);
+  }
+
+  // The [start, end) span of whole lines touched by the current selection.
+  function selectedLineRange(input) {
+    const value = input.value;
+    let start = value.lastIndexOf("\n", Math.max(0, input.selectionStart - 1)) + 1;
+    let end = value.indexOf("\n", input.selectionEnd);
+    if (end === -1) end = value.length;
+    return { start, end };
+  }
+
+  const BULLET_RE = /^(\s*)([-*])(\s+)(.*)$/;
+  const NUMBER_RE = /^(\s*)(\d+)\.(\s+)(.*)$/;
+  const HEADING_RE = /^(\s*)(#{1,3})(\s+)(.*)$/;
+
+  // Add a "- ", "1. " or "## " prefix to every selected line — or strip it
+  // again if the lines already have it, so the buttons toggle.
+  function applyLinePrefix(input, kind) {
+    const { start, end } = selectedLineRange(input);
+    const lines = input.value.slice(start, end).split("\n");
+    const re = kind === "bullet" ? BULLET_RE : kind === "number" ? NUMBER_RE : HEADING_RE;
+    const allPrefixed = lines.every((line) => !line.trim() || re.test(line));
+
+    let n = 0;
+    const out = lines.map((line) => {
+      if (!line.trim()) return line;
+      const m = line.match(re);
+      if (allPrefixed && m) return m[1] + m[4];
+      const body = stripLinePrefix(line);
+      n += 1;
+      if (kind === "bullet") return body.indent + "- " + body.text;
+      if (kind === "number") return body.indent + n + ". " + body.text;
+      return body.indent + "## " + body.text;
     });
-    return text.join("").replace(/\n$/, "");
+
+    const replacement = out.join("\n");
+    replaceRange(input, start, end, replacement, start, start + replacement.length);
   }
 
-  // Save & restore caret by character offset within the editor.
-  function getCaretOffset(el) {
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return null;
-    const range = sel.getRangeAt(0);
-    const pre = range.cloneRange();
-    pre.selectNodeContents(el);
-    pre.setEnd(range.endContainer, range.endOffset);
-    return pre.toString().length;
+  // Split a line into its indent and its text, dropping any list/heading
+  // marker it already carries so the markers never stack up.
+  function stripLinePrefix(line) {
+    const m = line.match(BULLET_RE) || line.match(NUMBER_RE) || line.match(HEADING_RE);
+    if (m) return { indent: m[1], text: m[4] };
+    const indent = (line.match(/^\s*/) || [""])[0];
+    return { indent, text: line.slice(indent.length) };
   }
 
-  function setCaretOffset(el, offset) {
-    if (offset == null) return;
-    let remaining = offset;
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
-    let node;
-    while ((node = walker.nextNode())) {
-      const len = node.textContent.length;
-      if (remaining <= len) {
-        const range = document.createRange();
-        range.setStart(node, remaining);
-        range.collapse(true);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
+  // Wrap the selection in `marker` — or unwrap it if it is already wrapped.
+  // With nothing selected, drop in placeholder text and select it so the
+  // next keystroke replaces it.
+  function toggleWrap(input, marker) {
+    const value = input.value;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const chosen = value.slice(start, end);
+    const len = marker.length;
+
+    if (chosen) {
+      if (chosen.startsWith(marker) && chosen.endsWith(marker) && chosen.length > len * 2) {
+        const inner = chosen.slice(len, -len);
+        replaceRange(input, start, end, inner, start, start + inner.length);
         return;
       }
-      remaining -= len;
-    }
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  function renderEditor(el, hidden) {
-    const text = getPlainText(el);
-    const caret = el === document.activeElement ? getCaretOffset(el) : null;
-    const lines = text.split("\n");
-    el.innerHTML = lines.map(highlightLine).join("");
-    if (caret != null) setCaretOffset(el, caret);
-    if (hidden) hidden.value = text;
-    el.classList.toggle("is-empty", text.length === 0);
-  }
-
-  const editors = [];
-  EDITORS.forEach((id) => {
-    const el = document.getElementById(id + "-editor");
-    const hidden = document.getElementById(id);
-    if (!el || !hidden) return;
-    editors.push({ el, hidden });
-
-    el.addEventListener("input", () => renderEditor(el, hidden));
-
-    // Enter inserts a newline as plain text (avoid contenteditable <div> soup).
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        document.execCommand("insertText", false, "\n");
+      if (value.slice(start - len, start) === marker && value.slice(end, end + len) === marker) {
+        replaceRange(input, start - len, end + len, chosen, start - len, start - len + chosen.length);
+        return;
       }
-      if (e.ctrlKey || e.metaKey) {
+      const wrapped = marker + chosen + marker;
+      replaceRange(input, start, end, wrapped, start + len, start + len + chosen.length);
+      return;
+    }
+
+    const placeholder = marker === "**" ? "bold text" : "italic text";
+    replaceRange(
+      input,
+      start,
+      end,
+      marker + placeholder + marker,
+      start + len,
+      start + len + placeholder.length
+    );
+  }
+
+  // Enter inside a list carries the list on: "- " starts another bullet,
+  // "1. " counts up. Enter on an item you never filled in clears the marker
+  // instead, which is how you get back out of a list.
+  function handleListEnter(e, input) {
+    if (e.shiftKey || input.selectionStart !== input.selectionEnd) return false;
+
+    const caret = input.selectionStart;
+    const lineStart = input.value.lastIndexOf("\n", caret - 1) + 1;
+    const line = input.value.slice(lineStart, caret);
+
+    const bullet = line.match(BULLET_RE);
+    const number = bullet ? null : line.match(NUMBER_RE);
+    if (!bullet && !number) return false;
+
+    const m = bullet || number;
+    if (!m[4].trim()) {
+      // empty item -> drop the marker and stay put
+      e.preventDefault();
+      replaceRange(input, lineStart, caret, m[1]);
+      return true;
+    }
+
+    e.preventDefault();
+    const next = bullet
+      ? m[1] + m[2] + m[3]
+      : m[1] + (parseInt(m[2], 10) + 1) + "." + m[3];
+    replaceRange(input, caret, caret, "\n" + next);
+    return true;
+  }
+
+  EDITORS.forEach((id) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const preview = document.getElementById(id + "-preview");
+    const pair = {
+      id,
+      input,
+      preview,
+      previewBody: preview ? preview.querySelector(".rich-text") : null,
+      savedSelection: null,
+    };
+    editorById[id] = pair;
+    editors.push(pair);
+
+    input.addEventListener("input", () => sync(pair));
+
+    // Tapping a toolbar button on a touch screen blurs the field, and the
+    // selection goes with it. Remember where the caret was so the button can
+    // put it back.
+    input.addEventListener("blur", () => {
+      pair.savedSelection = [input.selectionStart, input.selectionEnd];
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        handleListEnter(e, input);
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
         const k = e.key.toLowerCase();
         if (k === "b" || k === "i") {
           e.preventDefault();
-          const marker = k === "b" ? "**" : "*";
-          const sel = window.getSelection();
-          const chosen = sel.toString();
-          document.execCommand(
-            "insertText",
-            false,
-            marker + (chosen || (k === "b" ? "bold" : "italic")) + marker
-          );
-          renderEditor(el, hidden);
+          toggleWrap(input, k === "b" ? "**" : "*");
         }
       }
     });
 
-    // Paste as plain text so no foreign HTML enters the editor.
-    el.addEventListener("paste", (e) => {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData("text/plain");
-      document.execCommand("insertText", false, text);
-    });
-
-    el.classList.add("is-empty");
+    sync(pair);
   });
 
-  function syncAll() {
-    editors.forEach(({ el, hidden }) => {
-      hidden.value = getPlainText(el);
-    });
-  }
-
-  // Map an editor id -> its {el, hidden} for programmatic filling (import, edit).
-  const editorById = {};
-  editors.forEach((pair) => {
-    editorById[pair.el.id.replace(/-editor$/, "")] = pair;
+  // Wrapping changes with the width of the page, so the boxes have to be
+  // re-measured when it changes (rotating a phone, most often).
+  window.addEventListener("resize", () => {
+    editors.forEach((pair) => autoGrow(pair.input));
   });
 
-  // Set an editor's content from a plain Markdown string and re-highlight it.
+  // Set a field's content from a plain Markdown string (import, edit mode).
   function setEditorText(id, text) {
     const pair = editorById[id];
     if (!pair) return;
-    const lines = String(text || "").split("\n");
-    pair.el.innerHTML = "";
-    lines.forEach((line, i) => {
-      pair.el.appendChild(document.createTextNode(line));
-      if (i < lines.length - 1) pair.el.appendChild(document.createElement("br"));
+    pair.input.value = String(text || "");
+    sync(pair);
+  }
+
+  function resetEditors() {
+    editors.forEach((pair) => {
+      pair.input.value = "";
+      sync(pair);
     });
-    renderEditor(pair.el, pair.hidden);
+  }
+
+  // ------------------------------------------------------------------
+  // Category tags
+  //
+  // The presets are real checkboxes (so the form posts them as repeated
+  // "tags" values, and a keyboard reaches them the ordinary way) styled as
+  // chips. Anything that isn't a preset goes in the free-text box beside
+  // them and is merged server-side.
+  // ------------------------------------------------------------------
+
+  const tagChoices = document.getElementById("tag-choices");
+  const customTags = document.getElementById("custom-tags");
+
+  if (tagChoices) {
+    tagChoices.innerHTML = Site.CATEGORIES.map(
+      (label) =>
+        `<label class="tag-choice">` +
+        `<input type="checkbox" name="tags" value="${Site.escapeHtml(label)}" />` +
+        `<span>${Site.escapeHtml(label)}</span>` +
+        `</label>`
+    ).join("");
+  }
+
+  // Tick the presets a recipe already carries; anything else becomes the
+  // starting text of the custom box, so editing never silently drops a tag.
+  function setTags(tags) {
+    const list = Site.normalizeTags(tags);
+    const bySlug = new Map(list.map((tag) => [Site.slugify(tag), tag]));
+
+    document.querySelectorAll('#tag-choices input[name="tags"]').forEach((box) => {
+      const slug = Site.slugify(box.value);
+      box.checked = bySlug.has(slug);
+      bySlug.delete(slug);
+    });
+
+    if (customTags) customTags.value = Array.from(bySlug.values()).join(", ");
+  }
+
+  function resetTags() {
+    setTags([]);
   }
 
   // ------------------------------------------------------------------
   // Formatting toolbar
-  //
-  // Buttons insert Markdown markers at the caret (or around the current
-  // selection for bold/italic), then re-render so the styling shows up
-  // immediately — no need to memorize the syntax.
   // ------------------------------------------------------------------
 
   document.querySelectorAll(".md-toolbar button[data-action]").forEach((btn) => {
@@ -240,36 +351,31 @@
     const pair = targetId && editorById[targetId];
     if (!pair) return;
 
-    btn.addEventListener("click", () => {
-      const { el, hidden } = pair;
-      el.focus();
-      const sel = window.getSelection();
-      const chosen = sel && sel.rangeCount ? sel.toString() : "";
-      const action = btn.getAttribute("data-action");
+    // Keep the textarea's selection alive: without this the button steals
+    // focus on mousedown and the selection is gone by the time we act.
+    btn.addEventListener("mousedown", (e) => e.preventDefault());
 
-      let insertText;
+    btn.addEventListener("click", () => {
+      if (document.activeElement !== pair.input && pair.savedSelection) {
+        pair.input.focus();
+        pair.input.setSelectionRange(pair.savedSelection[0], pair.savedSelection[1]);
+      }
+      const action = btn.getAttribute("data-action");
       switch (action) {
         case "bold":
-          insertText = `**${chosen || "bold text"}**`;
+          toggleWrap(pair.input, "**");
           break;
         case "italic":
-          insertText = `*${chosen || "italic text"}*`;
+          toggleWrap(pair.input, "*");
           break;
         case "bullet":
-          insertText = chosen ? `- ${chosen}` : "- ";
-          break;
         case "number":
-          insertText = chosen ? `1. ${chosen}` : "1. ";
-          break;
         case "heading":
-          insertText = chosen ? `## ${chosen}` : "## ";
+          applyLinePrefix(pair.input, action);
           break;
         default:
-          return;
+          break;
       }
-
-      document.execCommand("insertText", false, insertText);
-      renderEditor(el, hidden);
     });
   });
 
@@ -330,7 +436,7 @@
 
       if (res.status === 404) {
         throw new Error(
-          "Link import isn't set up on the server yet. See README, or add the recipe by hand."
+          "Importing from a link isn't switched on for this site yet. You can still type the recipe in below."
         );
       }
       if (!res.ok || !data) {
@@ -341,6 +447,7 @@
       setEditorText("ingredients", data.ingredients || "");
       setEditorText("instructions", data.instructions || "");
       setEditorText("notes", data.notes || "");
+      // An import never guesses categories — that is the cook's call.
 
       if (data.photoUrl) {
         photoUrlField.value = data.photoUrl;
@@ -352,7 +459,7 @@
       }
 
       importStatus.textContent =
-        "Imported. Review and edit below, then Publish. Nothing is saved yet.";
+        "Check it over below, then save.";
       importStatus.className = "import-status success";
       if (nameField) nameField.focus();
     } catch (err) {
@@ -409,8 +516,7 @@
   // ------------------------------------------------------------------
 
   const pageTitle = document.getElementById("page-title");
-  const drawerLabel = document.getElementById("drawer-label");
-  const pageTagline = document.getElementById("page-tagline");
+  const formHeading = document.getElementById("form-heading");
   const editBanner = document.getElementById("edit-banner");
   const passwordPanel = document.getElementById("password-panel");
   const passwordField = document.getElementById("edit-password");
@@ -448,15 +554,14 @@
     if (recipeIdField) recipeIdField.value = id;
 
     pageTitle.textContent = "Edit Recipe — Family Recipes";
-    drawerLabel.textContent = "Edit Card";
-    pageTagline.textContent = "Update the card below, then save your changes.";
+    formHeading.textContent = "Edit recipe";
     submitBtn.textContent = "Save changes";
 
     passwordPanel.removeAttribute("hidden");
     const remembered = sessionStorage.getItem(SESSION_KEY);
     if (remembered) passwordField.value = remembered;
 
-    editBanner.textContent = "Loading this recipe for editing…";
+    editBanner.textContent = "Loading…";
     editBanner.removeAttribute("hidden");
 
     try {
@@ -468,6 +573,7 @@
       setEditorText("ingredients", recipe.ingredients || "");
       setEditorText("instructions", recipe.instructions || "");
       setEditorText("notes", recipe.notes || "");
+      setTags(recipe.tags);
 
       if (recipe.photo) {
         currentPhotoImg.src = `/photos/${encodeURIComponent(recipe.photo)}`;
@@ -475,10 +581,10 @@
         if (removePhotoField) removePhotoField.value = "";
       }
 
-      editBanner.textContent = `Editing "${recipe.name}". Changes save when you submit below.`;
+      editBanner.textContent = `Editing "${recipe.name}"`;
     } catch (err) {
       editBanner.textContent =
-        (err && err.message) || "Couldn't load that recipe. You can still fill out the form manually.";
+        (err && err.message) || "Couldn't load that recipe.";
     }
   }
 
@@ -493,8 +599,6 @@
     status.textContent = "";
     status.className = "form-status";
     if (passwordError) passwordError.textContent = "";
-
-    syncAll();
 
     const name = form.name.value.trim();
     const ingredients = form.ingredients.value.trim();
@@ -520,8 +624,8 @@
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = isEditMode ? "Saving…" : "Filing…";
-    status.textContent = isEditMode ? "Saving your changes…" : "Filing this recipe…";
+    submitBtn.textContent = "Saving…";
+    status.textContent = isEditMode ? "Saving your changes…" : "Saving this recipe…";
     status.className = "form-status pending";
 
     try {
@@ -545,8 +649,8 @@
       if (res.status === 404) {
         throw new Error(
           isEditMode
-            ? "Editing from the site isn't set up yet. See README."
-            : "Adding from the site isn't set up yet. See README (\"Enable adding recipes from the site\"), or add the recipe as a file in recipes/ on the backend."
+            ? "Saving edits from the site isn't switched on yet."
+            : "Saving from the site isn't switched on yet."
         );
       }
       if (res.status === 401) {
@@ -565,19 +669,15 @@
         } else {
           sessionStorage.removeItem(SESSION_KEY);
         }
-        status.textContent = "Changes saved! The recipe will update within about a minute, once the site finishes rebuilding.";
+        status.textContent = "Saved — the page updates in about a minute.";
         status.className = "form-status success";
         submitBtn.textContent = "Saved ✓";
       } else {
-        status.textContent =
-          "Recipe published! It'll appear in the box within about a minute, once the site finishes rebuilding.";
+        status.textContent = "Saved — it'll appear on the site in about a minute.";
         status.className = "form-status success";
         form.reset();
-        editors.forEach(({ el, hidden }) => {
-          el.innerHTML = "";
-          hidden.value = "";
-          el.classList.add("is-empty");
-        });
+        resetEditors();
+        resetTags();
         photoPreview.style.display = "none";
         clearImportedPhoto();
         if (importUrl) importUrl.value = "";
@@ -585,13 +685,13 @@
           importStatus.textContent = "";
           importStatus.className = "import-status";
         }
-        submitBtn.textContent = "Published ✓";
+        submitBtn.textContent = "Saved ✓";
       }
     } catch (err) {
       status.textContent = (err && err.message) || "Something went wrong. Please try again.";
       status.className = "form-status error";
       submitBtn.disabled = false;
-      submitBtn.textContent = isEditMode ? "Save changes" : "Publish recipe";
+      submitBtn.textContent = isEditMode ? "Save changes" : "Save recipe";
     }
   });
 })();
