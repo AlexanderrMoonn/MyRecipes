@@ -25,6 +25,41 @@ const ALLOWED_IMAGE_TYPES = {
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
 
+const MAX_TAGS = 8;
+const MAX_TAG_LENGTH = 24;
+
+function tagSlug(text) {
+  return String(text || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+// Tags arrive two ways: repeated "tags" values from the preset chips, and a
+// comma-separated "customTags" box. Merge them, keep the writer's
+// capitalisation, and drop blanks, duplicates and anything oversized.
+function collectTags(formData) {
+  const raw = formData
+    .getAll("tags")
+    .map((value) => value.toString())
+    .concat(
+      (formData.get("customTags") || "").toString().split(",")
+    );
+
+  const tags = [];
+  const seen = new Set();
+  for (const value of raw) {
+    const tag = value.replace(/\s+/g, " ").trim().slice(0, MAX_TAG_LENGTH);
+    const slug = tagSlug(tag);
+    if (!slug || seen.has(slug) || tags.length >= MAX_TAGS) continue;
+    seen.add(slug);
+    tags.push(tag);
+  }
+  return tags;
+}
+
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -171,6 +206,7 @@ export async function onRequestPost({ request, env }) {
   const ingredients = (formData.get("ingredients") || "").toString().trim();
   const instructions = (formData.get("instructions") || "").toString().trim();
   const notes = (formData.get("notes") || "").toString().trim();
+  const tags = collectTags(formData);
 
   if (!name || !ingredients || !instructions) {
     return json(
@@ -267,6 +303,7 @@ export async function onRequestPost({ request, env }) {
       ingredients,
       instructions,
       notes,
+      tags,
       photo: photoFilename,
       createdAt: existing.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),

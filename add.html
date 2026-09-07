@@ -4,21 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="page-title">Add a Recipe — Family Recipes</title>
-  <link rel="stylesheet" href="/css/style.css?v=5" />
+  <link rel="stylesheet" href="/css/style.css?v=6" />
 </head>
 <body>
   <header class="site-header">
-    <span class="drawer-label" id="drawer-label">New Card</span>
-    <h1 class="site-title"><a href="/">Family Recipes</a></h1>
-    <p class="site-tagline" id="page-tagline">Fill out the card below. A new recipe appears in the box within a minute of filing.</p>
-    <nav class="top-nav">
-      <a class="btn" href="/">&larr; Back to the box</a>
-    </nav>
+    <div class="wrap masthead">
+      <p class="wordmark"><a href="/">Family Recipes</a></p>
+      <div class="masthead-actions">
+        <a class="btn" href="/">All recipes</a>
+      </div>
+    </div>
+    <div class="category-bar">
+      <nav class="wrap category-nav" id="category-nav" aria-label="Recipe categories" hidden></nav>
+    </div>
   </header>
 
   <main class="wrap">
     <div class="form-sheet">
-      <p class="setup-note" id="setup-note" hidden></p>
+      <h1 id="form-heading">Add a recipe</h1>
+      <p class="form-lede" id="form-lede">
+        Name, ingredients, and instructions are all it needs. Everything else is optional.
+      </p>
+
       <p class="edit-banner" id="edit-banner" hidden></p>
 
       <div class="password-panel" id="password-panel" hidden>
@@ -32,16 +39,14 @@
       </div>
 
       <div class="import-panel">
-        <label for="import-url" class="import-label">Import from a link</label>
+        <label for="import-url" class="import-label">Have a link? Pull the recipe in</label>
         <div class="import-row">
           <input type="url" id="import-url" placeholder="Paste a recipe URL, e.g. https://…" autocomplete="off" />
-          <button type="button" class="btn" id="import-btn">Preview</button>
+          <button type="button" class="btn" id="import-btn">Fetch</button>
         </div>
-        <p class="import-hint">Works best on major recipe sites. We'll pull in the name, ingredients, and steps for you to review before publishing.</p>
+        <p class="import-hint">Works on most recipe sites. You'll get the name, ingredients, and steps to check over before anything is saved.</p>
         <p class="import-status" id="import-status" role="status"></p>
       </div>
-
-      <p class="required-note">Name, ingredients, and instructions are required. Notes and a photo are optional.</p>
 
       <form id="recipe-form" novalidate>
         <input type="hidden" id="recipe-id" name="id" value="" />
@@ -51,6 +56,15 @@
           <label for="name">Recipe name</label>
           <input type="text" id="name" name="name" required maxlength="120" placeholder="e.g. Grandma's Sunday Sauce" />
         </div>
+
+        <fieldset class="field">
+          <legend class="fieldset-label">Categories <span class="optional">(pick any that fit)</span></legend>
+          <div class="tag-choices" id="tag-choices"></div>
+          <label class="visually-hidden" for="custom-tags">Other tags</label>
+          <input type="text" id="custom-tags" name="customTags" maxlength="120"
+                 placeholder="Anything else, separated by commas — Thanksgiving, Grandma's, Freezer" />
+          <span class="hint">These become the buttons at the top of the site, and let you find a recipe later.</span>
+        </fieldset>
 
         <div class="field">
           <label for="ingredients">Ingredients</label>
@@ -63,7 +77,7 @@
             <textarea class="md-input" id="ingredients" name="ingredients" required rows="6"
                       spellcheck="true" aria-describedby="ingredients-hint"
                       placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></textarea>
-            <span class="hint" id="ingredients-hint">Press Enter for a new line. The buttons above type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you, and a preview of the finished card appears as soon as you use any of them.</span>
+            <span class="hint" id="ingredients-hint">Press Enter for a new line. The buttons above type <code>**bold**</code>, <code>*italic*</code>, and <code>- </code> for you, and a preview appears as soon as you use any of them.</span>
             <div class="md-preview" id="ingredients-preview" hidden>
               <span class="md-preview-label">Preview</span>
               <div class="rich-text"></div>
@@ -92,7 +106,7 @@
         </div>
 
         <div class="field notes">
-          <label for="notes">Notes <span class="hint" style="display:inline">(optional)</span></label>
+          <label for="notes">Notes <span class="optional">(optional)</span></label>
           <div class="md-toolbar" data-target="notes">
             <button type="button" data-action="bold" title="Bold"><strong>B</strong></button>
             <button type="button" data-action="italic" title="Italic"><em>I</em></button>
@@ -110,7 +124,7 @@
         </div>
 
         <div class="field">
-          <label for="photo">Photo <span class="hint" style="display:inline">(optional)</span></label>
+          <label for="photo">Photo <span class="optional">(optional)</span></label>
 
           <div class="current-photo" id="current-photo" hidden>
             <img id="current-photo-img" alt="Current recipe photo" />
@@ -131,7 +145,7 @@
           <div class="imported-photo" id="imported-photo" hidden>
             <img id="imported-photo-img" alt="Imported photo preview" />
             <div class="imported-photo-meta">
-              <span>Imported from the link — will be saved when you publish.</span>
+              <span>Found with the link — it'll be saved along with the recipe.</span>
               <button type="button" class="imported-photo-clear" id="imported-photo-clear">Remove</button>
             </div>
           </div>
@@ -139,7 +153,7 @@
 
         <div class="form-actions">
           <a class="btn" href="/">Cancel</a>
-          <button type="submit" class="btn btn-primary" id="submit-btn">Publish recipe</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Save recipe</button>
         </div>
 
         <p class="form-status" id="form-status" role="status"></p>
@@ -149,8 +163,9 @@
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="/js/md.js?v=5"></script>
-  <script src="/js/add.js?v=5"></script>
-  <script src="/js/footer.js?v=5"></script>
+  <script src="/js/site.js?v=6"></script>
+  <script src="/js/md.js?v=6"></script>
+  <script src="/js/add.js?v=6"></script>
+  <script src="/js/footer.js?v=6"></script>
 </body>
 </html>

@@ -10,6 +10,10 @@
 
   const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
 
+  // The header's category bar is shared with the rest of the site; nothing
+  // in it is the "current" page while you are filling in this form.
+  Site.renderCategoryNav(null);
+
   // ------------------------------------------------------------------
   // Markdown editor
   //
@@ -297,6 +301,47 @@
   }
 
   // ------------------------------------------------------------------
+  // Category tags
+  //
+  // The presets are real checkboxes (so the form posts them as repeated
+  // "tags" values, and a keyboard reaches them the ordinary way) styled as
+  // chips. Anything that isn't a preset goes in the free-text box beside
+  // them and is merged server-side.
+  // ------------------------------------------------------------------
+
+  const tagChoices = document.getElementById("tag-choices");
+  const customTags = document.getElementById("custom-tags");
+
+  if (tagChoices) {
+    tagChoices.innerHTML = Site.CATEGORIES.map(
+      (label) =>
+        `<label class="tag-choice">` +
+        `<input type="checkbox" name="tags" value="${Site.escapeHtml(label)}" />` +
+        `<span>${Site.escapeHtml(label)}</span>` +
+        `</label>`
+    ).join("");
+  }
+
+  // Tick the presets a recipe already carries; anything else becomes the
+  // starting text of the custom box, so editing never silently drops a tag.
+  function setTags(tags) {
+    const list = Site.normalizeTags(tags);
+    const bySlug = new Map(list.map((tag) => [Site.slugify(tag), tag]));
+
+    document.querySelectorAll('#tag-choices input[name="tags"]').forEach((box) => {
+      const slug = Site.slugify(box.value);
+      box.checked = bySlug.has(slug);
+      bySlug.delete(slug);
+    });
+
+    if (customTags) customTags.value = Array.from(bySlug.values()).join(", ");
+  }
+
+  function resetTags() {
+    setTags([]);
+  }
+
+  // ------------------------------------------------------------------
   // Formatting toolbar
   // ------------------------------------------------------------------
 
@@ -391,7 +436,7 @@
 
       if (res.status === 404) {
         throw new Error(
-          "Link import isn't set up on the server yet. See README, or add the recipe by hand."
+          "Importing from a link isn't switched on for this site yet. You can still type the recipe in below."
         );
       }
       if (!res.ok || !data) {
@@ -402,6 +447,7 @@
       setEditorText("ingredients", data.ingredients || "");
       setEditorText("instructions", data.instructions || "");
       setEditorText("notes", data.notes || "");
+      // An import never guesses categories — that is the cook's call.
 
       if (data.photoUrl) {
         photoUrlField.value = data.photoUrl;
@@ -413,7 +459,7 @@
       }
 
       importStatus.textContent =
-        "Imported. Review and edit below, then Publish. Nothing is saved yet.";
+        "Got it. Check it over below and pick some categories — nothing is saved until you do.";
       importStatus.className = "import-status success";
       if (nameField) nameField.focus();
     } catch (err) {
@@ -470,8 +516,8 @@
   // ------------------------------------------------------------------
 
   const pageTitle = document.getElementById("page-title");
-  const drawerLabel = document.getElementById("drawer-label");
-  const pageTagline = document.getElementById("page-tagline");
+  const formHeading = document.getElementById("form-heading");
+  const formLede = document.getElementById("form-lede");
   const editBanner = document.getElementById("edit-banner");
   const passwordPanel = document.getElementById("password-panel");
   const passwordField = document.getElementById("edit-password");
@@ -509,8 +555,8 @@
     if (recipeIdField) recipeIdField.value = id;
 
     pageTitle.textContent = "Edit Recipe — Family Recipes";
-    drawerLabel.textContent = "Edit Card";
-    pageTagline.textContent = "Update the card below, then save your changes.";
+    formHeading.textContent = "Edit recipe";
+    formLede.textContent = "Make your changes below, then save.";
     submitBtn.textContent = "Save changes";
 
     passwordPanel.removeAttribute("hidden");
@@ -529,6 +575,7 @@
       setEditorText("ingredients", recipe.ingredients || "");
       setEditorText("instructions", recipe.instructions || "");
       setEditorText("notes", recipe.notes || "");
+      setTags(recipe.tags);
 
       if (recipe.photo) {
         currentPhotoImg.src = `/photos/${encodeURIComponent(recipe.photo)}`;
@@ -536,7 +583,7 @@
         if (removePhotoField) removePhotoField.value = "";
       }
 
-      editBanner.textContent = `Editing "${recipe.name}". Changes save when you submit below.`;
+      editBanner.textContent = `Editing "${recipe.name}". Nothing changes until you save.`;
     } catch (err) {
       editBanner.textContent =
         (err && err.message) || "Couldn't load that recipe. You can still fill out the form manually.";
@@ -579,8 +626,8 @@
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = isEditMode ? "Saving…" : "Filing…";
-    status.textContent = isEditMode ? "Saving your changes…" : "Filing this recipe…";
+    submitBtn.textContent = "Saving…";
+    status.textContent = isEditMode ? "Saving your changes…" : "Saving this recipe…";
     status.className = "form-status pending";
 
     try {
@@ -604,8 +651,8 @@
       if (res.status === 404) {
         throw new Error(
           isEditMode
-            ? "Editing from the site isn't set up yet. See README."
-            : "Adding from the site isn't set up yet. See README (\"Enable adding recipes from the site\"), or add the recipe as a file in recipes/ on the backend."
+            ? "Saving edits from the site isn't switched on yet."
+            : "Saving from the site isn't switched on yet."
         );
       }
       if (res.status === 401) {
@@ -624,15 +671,17 @@
         } else {
           sessionStorage.removeItem(SESSION_KEY);
         }
-        status.textContent = "Changes saved! The recipe will update within about a minute, once the site finishes rebuilding.";
+        status.textContent =
+          "Saved. The recipe page updates in about a minute, once the site rebuilds.";
         status.className = "form-status success";
         submitBtn.textContent = "Saved ✓";
       } else {
         status.textContent =
-          "Recipe published! It'll appear in the box within about a minute, once the site finishes rebuilding.";
+          "Saved. It'll show up on the site in about a minute, once the site rebuilds.";
         status.className = "form-status success";
         form.reset();
         resetEditors();
+        resetTags();
         photoPreview.style.display = "none";
         clearImportedPhoto();
         if (importUrl) importUrl.value = "";
@@ -640,13 +689,13 @@
           importStatus.textContent = "";
           importStatus.className = "import-status";
         }
-        submitBtn.textContent = "Published ✓";
+        submitBtn.textContent = "Saved ✓";
       }
     } catch (err) {
       status.textContent = (err && err.message) || "Something went wrong. Please try again.";
       status.className = "form-status error";
       submitBtn.disabled = false;
-      submitBtn.textContent = isEditMode ? "Save changes" : "Publish recipe";
+      submitBtn.textContent = isEditMode ? "Save changes" : "Save recipe";
     }
   });
 })();
