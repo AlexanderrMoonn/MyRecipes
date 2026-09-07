@@ -12,7 +12,6 @@
   const searchInput = document.getElementById("search-input");
   const listTitle = document.getElementById("list-title");
   const listCount = document.getElementById("list-count");
-  const pageIntro = document.getElementById("page-intro");
 
   let allRecipes = [];
   let activeTag = "";
@@ -139,7 +138,6 @@
 
   readUrl();
   if (query) searchInput.value = query;
-  if (activeTag && pageIntro) pageIntro.hidden = true;
   S.renderCategoryNav(activeTag);
 
   S.loadManifest()

@@ -22,7 +22,6 @@
 
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --radius: 10px;
   --radius-sm: 7px;
@@ -229,12 +228,6 @@ main.wrap {
 
 /* ---------- home: intro + search ---------- */
 
-.page-intro {
-  margin: 0 0 28px;
-  max-width: 52ch;
-  color: var(--ink-2);
-  font-size: 1.02rem;
-}
 
 .list-head {
   display: flex;
@@ -619,17 +612,13 @@ a.tag:hover {
 }
 
 .form-sheet > h1 {
-  margin: 0 0 6px;
+  margin: 0 0 26px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.6rem;
   letter-spacing: -0.01em;
 }
 
-.form-lede {
-  margin: 0 0 28px;
-  color: var(--ink-2);
-}
 
 .field {
   margin-bottom: 26px;
@@ -644,16 +633,10 @@ a.tag:hover {
   margin-bottom: 8px;
 }
 
-.field .hint,
 .optional {
   font-size: 0.85rem;
   font-weight: 400;
   color: var(--ink-2);
-}
-
-.field .hint {
-  display: block;
-  margin-top: 6px;
 }
 
 .field input[type="text"],
@@ -752,9 +735,6 @@ fieldset.field {
   opacity: 0.75;
 }
 
-.md-editor .hint {
-  margin-top: 6px;
-}
 
 /* Live preview: the same md.js output the recipe page shows, so the writer
    sees the finished recipe, not the markup. */
@@ -782,13 +762,6 @@ fieldset.field {
 .md-preview .rich-text h2 { font-size: 1.06rem; }
 .md-preview .rich-text h3 { font-size: 1rem; }
 
-.hint code {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-  background: var(--surface-sunk);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
 
 /* ---------- formatting toolbar ---------- */
 
@@ -855,11 +828,6 @@ fieldset.field {
   border-color: var(--ink-2);
 }
 
-.import-hint {
-  margin: 10px 0 0;
-  font-size: 0.85rem;
-  color: var(--ink-2);
-}
 
 .import-status,
 .form-status,

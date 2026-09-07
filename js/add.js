@@ -459,7 +459,7 @@
       }
 
       importStatus.textContent =
-        "Got it. Check it over below and pick some categories — nothing is saved until you do.";
+        "Check it over below, then save.";
       importStatus.className = "import-status success";
       if (nameField) nameField.focus();
     } catch (err) {
@@ -517,7 +517,6 @@
 
   const pageTitle = document.getElementById("page-title");
   const formHeading = document.getElementById("form-heading");
-  const formLede = document.getElementById("form-lede");
   const editBanner = document.getElementById("edit-banner");
   const passwordPanel = document.getElementById("password-panel");
   const passwordField = document.getElementById("edit-password");
@@ -556,14 +555,13 @@
 
     pageTitle.textContent = "Edit Recipe — Family Recipes";
     formHeading.textContent = "Edit recipe";
-    formLede.textContent = "Make your changes below, then save.";
     submitBtn.textContent = "Save changes";
 
     passwordPanel.removeAttribute("hidden");
     const remembered = sessionStorage.getItem(SESSION_KEY);
     if (remembered) passwordField.value = remembered;
 
-    editBanner.textContent = "Loading this recipe for editing…";
+    editBanner.textContent = "Loading…";
     editBanner.removeAttribute("hidden");
 
     try {
@@ -583,10 +581,10 @@
         if (removePhotoField) removePhotoField.value = "";
       }
 
-      editBanner.textContent = `Editing "${recipe.name}". Nothing changes until you save.`;
+      editBanner.textContent = `Editing "${recipe.name}"`;
     } catch (err) {
       editBanner.textContent =
-        (err && err.message) || "Couldn't load that recipe. You can still fill out the form manually.";
+        (err && err.message) || "Couldn't load that recipe.";
     }
   }
 
@@ -671,13 +669,11 @@
         } else {
           sessionStorage.removeItem(SESSION_KEY);
         }
-        status.textContent =
-          "Saved. The recipe page updates in about a minute, once the site rebuilds.";
+        status.textContent = "Saved — the page updates in about a minute.";
         status.className = "form-status success";
         submitBtn.textContent = "Saved ✓";
       } else {
-        status.textContent =
-          "Saved. It'll show up on the site in about a minute, once the site rebuilds.";
+        status.textContent = "Saved — it'll appear on the site in about a minute.";
         status.className = "form-status success";
         form.reset();
         resetEditors();
